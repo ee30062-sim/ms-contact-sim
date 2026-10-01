@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metal-Semiconductor Contact Lab</title>
+<style>
+  :root{
+    --title:#004187; --text:#3C3C3B; --el:#1F5FD0; --ho:#E02B20;
+    --scr:#D9D9D9; --field:#1B8A3A; --fermi:#C0198C;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:Arial,Helvetica,sans-serif;color:var(--text);background:#fff;
+       display:flex;flex-direction:column;font-size:14px;overflow:hidden}
+  header{padding:7px 16px 5px 16px;border-bottom:3px solid var(--title);display:flex;
+         align-items:baseline;gap:16px;flex-wrap:wrap;flex:0 0 auto}
+  h1{margin:0;font-size:21px;color:var(--title);font-weight:bold}
+  header .sub{font-size:13px;color:var(--text)}
+  main{flex:1 1 auto;display:flex;min-height:0}
+  aside{flex:0 0 304px;width:304px;padding:5px 11px 10px 13px;border-right:1px solid #cfcfcf;
+        overflow-y:auto;background:#fff}
+  #right{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+  #plotwrap{flex:1 1 auto;position:relative;min-width:0;min-height:0}
+  #cv{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+  h2{font-size:15px;color:var(--title);margin:7px 0 3px 0;font-weight:bold}
+  h2:first-child{margin-top:0}
+  .ctl{margin:0 0 4px 0}
+  .ctl .row{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+  .ctl label{font-size:13.5px}
+  .ctl output{font-size:13.5px;font-weight:bold;color:var(--title);white-space:nowrap}
+  .two{display:flex;gap:8px}
+  .two > div{flex:1 1 0;min-width:0}
+  .two label{display:block;font-size:13.5px;margin-bottom:1px}
+  select,input[type=number]{font-family:Arial,Helvetica,sans-serif;font-size:13.5px;color:var(--text);
+        width:100%;padding:2px 3px;border:1.3px solid #8a8a8a;border-radius:4px;background:#fff;height:25px}
+  input[type=range]{width:100%;margin:1px 0 0 0;accent-color:#004187;height:18px}
+  .mini{display:flex;gap:5px;margin-top:2px}
+  button{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--title);background:#fff;
+         border:1.5px solid var(--title);border-radius:5px;padding:4px 5px;cursor:pointer;line-height:1.15}
+  button:hover{background:#E8F0FA}
+  button:active{background:#cfe0f5}
+  .mini button{flex:1;padding:2px 4px}
+  .presets{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  #btnReset{width:100%;margin-top:6px;background:var(--title);color:#fff;font-weight:bold;padding:5px}
+  #btnReset:hover{background:#0a55a8}
+  .chk{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:4px}
+  .chk input{margin:0}
+  .seg{display:inline-flex}
+  .seg button{border-radius:0;padding:2px 8px;border-right-width:0}
+  .seg button:first-child{border-radius:5px 0 0 5px}
+  .seg button:last-child{border-radius:0 5px 5px 0;border-right-width:1.5px}
+  .seg button.on{background:var(--title);color:#fff}
+  .inl{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;font-size:13px}
+  .inl input[type=number]{width:84px;flex:0 0 84px}
+  #readout{flex:0 0 auto;margin:0 10px 8px 10px;border:1.5px solid var(--title);border-radius:6px;
+           padding:5px 10px 5px 10px;font-size:13px;background:#F7FAFE}
+  #badges{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin-bottom:2px;overflow:hidden}
+  #rnote{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:17px;margin-bottom:2px}
+  .badge{display:inline-block;font-weight:bold;font-size:13px;padding:2px 9px;border-radius:10px;color:#fff;white-space:nowrap}
+  .btxt{font-size:13px;color:var(--text)}
+  #rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));column-gap:18px;row-gap:0;grid-auto-flow:dense}
+  #rgrid .cell{display:flex;justify-content:space-between;align-items:baseline;gap:8px;line-height:1.32;
+               border-bottom:1px dotted #d3dbe6;white-space:nowrap;min-width:0;overflow:hidden}
+  #rgrid .cell .v{font-weight:bold;text-align:right}
+  #rgrid .cell.wide{grid-column:span 2}
+  .note{font-size:13px;color:var(--text);margin-top:2px}
+  details{margin-top:9px;border:1px solid #bdbdbd;border-radius:6px;padding:5px 9px;font-size:13.5px;background:#fff}
+  summary{cursor:pointer;font-weight:bold;color:var(--title);font-size:14px}
+  details ul{margin:6px 0 2px 0;padding-left:18px}
+  details li{margin-bottom:5px;line-height:1.3}
+  sub,sup{font-size:0.75em;line-height:0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Metal&ndash;Semiconductor Contact Lab: Schottky &amp; ohmic</h1>
+  <span class="sub">Ideal Schottky&ndash;Mott model &middot; depletion approximation &middot; thermionic emission &middot; metal | semiconductor interface at x = 0</span>
+</header>
+<main>
+  <aside>
+    <h2>Controls</h2>
+    <div class="ctl two">
+      <div><label for="selSemi">Semiconductor</label>
+        <select id="selSemi"><option value="Si">Si</option><option value="GaAs">GaAs</option></select></div>
+      <div><label for="selType">Type</label>
+        <select id="selType"><option value="n">n-type</option><option value="p">p-type</option></select></div>
+    </div>
+    <div class="ctl">
+      <div class="row"><label for="selMetal">Metal (Neamen Table 9.1)</label></div>
+      <select id="selMetal"></select>
+    </div>
+    <div class="ctl">
+      <div class="row"><label for="sPhi">Metal work function &phi;<sub>m</sub></label><output id="oPhi"></output></div>
+      <input type="range" id="sPhi" min="3.5" max="6" step="0.01">
+    </div>
+    <div class="ctl">
+      <div class="row"><label for="sN" id="lblN">Doping N<sub>d</sub></label><output id="oN"></output></div>
+      <input type="range" id="sN" min="14" max="20" step="0.01">
+    </div>
+    <div class="ctl">
+      <div class="row"><label for="sV" id="lblV">V<sub>a</sub></label><output id="oV"></output></div>
+      <input type="range" id="sV" min="-5" max="0.6" step="0.005">
+      <div class="mini">
+        <button id="bVm" title="decrease by 10 mV">&minus;10 mV</button>
+        <button id="bV0" title="zero bias">V<sub>a</sub> = 0</button>
+        <button id="bVp" title="increase by 10 mV">+10 mV</button>
+      </div>
+      <div class="note" id="vnote"></div>
+    </div>
+    <div class="ctl">
+      <div class="row"><label for="sT">Temperature T</label><output id="oT"></output></div>
+      <input type="range" id="sT" min="250" max="400" step="1">
+    </div>
+    <label class="chk"><input type="checkbox" id="chkImg"><span>Include image-force barrier lowering &Delta;&phi;</span></label>
+    <label class="chk"><input type="checkbox" id="chkPn"><span>Compare with pn diode, J<sub>s</sub> = 3.66&times;10<sup>&minus;11</sup></span></label>
+    <div class="inl"><span>J&ndash;V scale</span>
+      <span class="seg" id="segJV"><button data-v="lin" class="on">linear</button><button data-v="log">semilog |J|</button></span></div>
+    <div class="inl"><label for="inOv" id="lblOv">Override &phi;<sub>Bn</sub> (measured) [V]</label>
+      <input type="number" id="inOv" min="0" max="3" step="0.01" placeholder="ideal"></div>
+
+    <h2>Presets</h2>
+    <div class="presets">
+      <button id="p1" title="W (4.55 V) on n-Si, Nd = 1e16, Va = 0, 300 K">W on n-Si 1e16<br>(Neamen Ex 9.1)</button>
+      <button id="p4" title="n-Si, Nd = 7e18, measured barrier 0.67 V (override)">Heavy doping 7e18<br>&rarr; tunnelling (Ex 9.7)</button>
+      <button id="p2" title="only changes the voltage">Forward<br>+0.3 V</button>
+      <button id="p3" title="only changes the voltage">Reverse<br>&minus;5 V</button>
+      <button id="p5" title="Al (4.28 V) on n-Si, Nd = 1e16: Vbi = +0.06 V">Al on n-Si 1e16:<br>barely rectifying<br>(V<sub>bi</sub> &asymp; 0.06 V)</button>
+      <button id="p6" title="hypothetical low-work-function metal, phi_m = 4.0 V, n-Si 1e16: Vbi = -0.22 V">Ideal ohmic on n-Si:<br>&phi;<sub>m</sub> = 4.0 V<br>(hypothetical metal)</button>
+      <button id="p7" title="Pt (5.65 V) on p-Si, Na = 1e16">Pt on p-Si<br>(&phi;<sub>m</sub> &gt; &phi;<sub>s</sub> &rarr;<br>ideal ohmic)</button>
+      <button id="p8" title="Al (4.28 V) on p-Si, Na = 1e16: phi_Bp0 = 0.85 V">Al on p-Si 1e16<br>(rectifying,<br>&phi;<sub>Bp0</sub> = 0.85 V)</button>
+    </div>
+    <button id="btnReset">Reset</button>
+
+    <details id="notice">
+      <summary>What to notice</summary>
+      <ul>
+        <li>The <b>metal-side barrier q&phi;<sub>B0</sub> does not move</b> with bias; only the <b>semiconductor-side barrier q(V<sub>bi</sub> &minus; V<sub>a</sub>)</b> does. That is why J<sub>s&rarr;m</sub> grows exponentially in forward bias while J<sub>m&rarr;s</sub> = J<sub>sT</sub> stays fixed (reverse current saturates).</li>
+        <li>A Schottky diode is a <b>majority-carrier device</b>: current is thermionic emission over the barrier, no minority-carrier storage &rarr; fast switching.</li>
+        <li><b>J<sub>sT</sub> &gg; J<sub>s</sub> of a pn diode</b> (tick &ldquo;compare&rdquo;): the same current is reached at a much <b>lower turn-on voltage</b>.</li>
+        <li>With <b>image-force lowering</b> on, &Delta;&phi; &prop; &radic;E<sub>max</sub> grows with reverse bias, so the reverse current <b>creeps up</b> instead of saturating (semilog view).</li>
+        <li><b>Heavy doping</b> makes W only a few nm: E<sub>00</sub> becomes comparable to kT and electrons <b>tunnel</b> through the barrier &rarr; low R<sub>c</sub> ohmic contact.</li>
+        <li>With real metals on n-Si the ideal non-rectifying case is essentially unavailable &mdash; practical ohmic contacts rely on heavy doping and tunnelling.</li>
+      </ul>
+    </details>
+  </aside>
+  <section id="right">
+    <div id="plotwrap"><canvas id="cv"></canvas></div>
+    <div id="readout"><div id="badges"></div><div id="rnote"></div><div id="rgrid"></div></div>
+  </section>
+</main>
+
+<script>
+'use strict';
+/*MATH-BEGIN  (pure functions, no DOM; units: cm, V, K, cm^-3, A/cm^2 unless noted) */
+var Q = 1.602e-19, KB = 1.381e-23, EPS0 = 8.854e-14, HPL = 6.626e-34, HBAR = 1.0546e-34, M0 = 9.109e-31;
+var JS_PN = 3.66e-11;            /* reference ideal Si pn diode, 300 K */
+var SEMI = {
+  Si:   { name: 'Si',   chi: 4.01, Eg: 1.12, Nc: 2.8e19, Nv: 1.04e19, epsr: 11.7, An: 114,  Ap: 32, mt: 0.26 },
+  GaAs: { name: 'GaAs', chi: 4.07, Eg: 1.42, Nc: 4.7e17, Nv: 7.0e18,  epsr: 13.1, An: 8.04, Ap: 74, mt: 0.067 }
+};
+var METALS = [['Ag', 4.26], ['Al', 4.28], ['Au', 5.10], ['Cr', 4.50], ['Mo', 4.60],
+              ['Ni', 5.15], ['Pd', 5.12], ['Pt', 5.65], ['Ti', 4.33], ['W', 4.55]];
+
+function thermalV(T) { return KB * T / Q; }
+
+/* image-force (Schottky) barrier lowering; E in V/cm, eps in F/cm -> dphi [V], xm [cm] */
+function imageForce(E, eps) {
+  if (!(E > 0)) return { dphi: 0, xm: 0 };
+  return { dphi: Math.sqrt(Q * E / (4 * Math.PI * eps)), xm: Math.sqrt(Q / (16 * Math.PI * eps * E)) };
+}
+
+/* tunnelling parameter E00 in joules; N in cm^-3, eps in F/cm, mt in units of m0 */
+function e00Joule(N, eps, mt) {
+  return (Q * HBAR / 2) * Math.sqrt((N * 1e6) / ((eps * 100) * (mt * M0)));
+}
+function coth(x) { var e = Math.exp(-2 * x); return (1 + e) / (1 - e); }
+
+/* depletion quantities for a junction voltage Vj = Vbi - V (clamped) */
+function depletion(N, eps, Vj) {
+  var W = Math.sqrt(2 * eps * Vj / (Q * N));
+  return { W: W, Emax: Q * N * W / eps };
+}
+
+/* p: { semi:'Si'|'GaAs', type:'n'|'p', phim, N, V (forward-positive), T, image:bool, override:number|null } */
+function contact(p) {
+  var sm = SEMI[p.semi], T = p.T, vt = thermalV(T), sc = Math.pow(T / 300, 1.5);
+  var isN = p.type === 'n';
+  var c = { p: p, sm: sm, isN: isN, T: T, vt: vt, N: p.N, V: p.V, image: !!p.image };
+  c.Nc = sm.Nc * sc; c.Nv = sm.Nv * sc; c.eps = sm.epsr * EPS0; c.Eg = sm.Eg;
+  c.A = isN ? sm.An : sm.Ap;
+  c.phiDop = isN ? vt * Math.log(c.Nc / p.N) : vt * Math.log(c.Nv / p.N);   /* phi_n or phi_p */
+  c.phiS = isN ? sm.chi + c.phiDop : sm.chi + sm.Eg - c.phiDop;              /* semiconductor work function */
+  c.phiB0ideal = isN ? p.phim - sm.chi : sm.Eg + sm.chi - p.phim;
+  c.override = (typeof p.override === 'number' && isFinite(p.override));
+  c.phiB0 = c.override ? p.override : c.phiB0ideal;
+  c.Vbi = c.phiB0 - c.phiDop;
+  c.rect = c.Vbi > 0;
+  c.LD = Math.sqrt(c.eps * vt / (Q * p.N));
+  /* tunnelling figure of merit */
+  c.kT = KB * T;
+  c.E00 = e00Joule(p.N, c.eps, sm.mt);
+  c.ratio = c.E00 / c.kT;
+  c.E0 = c.E00 * coth(c.ratio);
+  c.regime = c.ratio < 0.5 ? 'thermionic emission' : (c.ratio <= 5 ? 'thermionic-field emission' : 'field emission (tunnelling)');
+  if (c.rect) {
+    c.Vj = Math.max(c.Vbi - p.V, 0.005);
+    c.flat = (c.Vbi - p.V) < 0.005;
+    var d = depletion(p.N, c.eps, c.Vj);
+    c.W = d.W; c.Emax = d.Emax;
+    var im = imageForce(c.Emax, c.eps);
+    c.xm = im.xm; c.dphiRaw = im.dphi;
+    c.dphi = c.image ? im.dphi : 0;
+    c.phiB = Math.max(c.phiB0 - c.dphi, 0);
+    c.C = c.eps / c.W;
+    c.JsT0 = c.A * T * T * Math.exp(-c.phiB0 / vt);          /* no lowering */
+    c.JsT = c.A * T * T * Math.exp(-c.phiB / vt);            /* with (bias-dependent) lowering */
+    /* zero-bias barrier for the contact-resistance estimate */
+    var d0 = depletion(p.N, c.eps, Math.max(c.Vbi, 0.005));
+    c.phiBc = Math.max(c.phiB0 - (c.image ? imageForce(d0.Emax, c.eps).dphi : 0), 0);
+  } else {
+    c.Vj = NaN; c.flat = false; c.W = NaN; c.Emax = NaN; c.xm = NaN; c.dphi = 0; c.dphiRaw = NaN;
+    c.phiB = c.phiB0; c.C = NaN; c.JsT = NaN; c.JsT0 = NaN;
+    c.phiBc = Math.max(c.phiDop, 0);
+  }
+  c.Rc = (KB / (Q * c.A * T)) * Math.exp(c.phiBc / (c.E0 / Q));   /* ohm cm^2, model estimate */
+  c.J = currentAt(c, p.V);
+  c.Vjn = c.rect ? Math.min(p.V, c.Vbi - 0.005) : 0;               /* voltage across the junction used for the band diagram */
+  c.Ub = c.phiDop + c.Vjn;                                          /* bulk majority band edge, |E - E_Fm| in eV */
+  c.Utop = c.rect ? c.Ub + c.Vj : c.phiB0;                          /* = phiB0: the metal-side barrier never moves */
+  c.EFs = isN ? c.Vjn : -c.Vjn;                                     /* E_Fs - E_Fm in eV (ohmic: drawn at equilibrium) */
+  return c;
+}
+
+/* J(V) for the contact c at another forward voltage V */
+function currentAt(c, V) {
+  if (!c.rect) return V / c.Rc;
+  var d = depletion(c.N, c.eps, Math.max(c.Vbi - V, 0.005));
+  var dphi = c.image ? imageForce(d.Emax, c.eps).dphi : 0;
+  var phiB = Math.max(c.phiB0 - dphi, 0);
+  return c.A * c.T * c.T * Math.exp(-phiB / c.vt) * (Math.exp(V / c.vt) - 1);
+}
+
+/* ideal majority band edge measured from E_Fm, in eV (n: Ec = +U, p: Ev = -U) */
+function bandU(c, x) {
+  if (c.rect) return c.Ub + (x < c.W ? Q * c.N * (c.W - x) * (c.W - x) / (2 * c.eps) : 0);
+  return c.phiDop + c.Vbi * Math.exp(-x / c.LD);
+}
+/* image potential in volts at distance x [cm] */
+function imagePot(c, x) { return Q / (16 * Math.PI * c.eps * x); }
+/* electric field in V/cm */
+function fieldAt(c, x) {
+  if (x < 0) return 0;
+  var s = c.isN ? 1 : -1;
+  if (c.rect) return x < c.W ? -s * Q * c.N * (c.W - x) / c.eps : 0;
+  return -s * (c.Vbi / c.LD) * Math.exp(-x / c.LD);
+}
+/*MATH-END*/
+
+/* ------------------------------------------------------------------ */
+/* formatting helpers                                                   */
+/* ------------------------------------------------------------------ */
+var MINUS = '−';
+function sciParts(v, sig) {
+  if (!isFinite(v) || v === 0) return null;
+  var e = Math.floor(Math.log10(Math.abs(v)));
+  var m = v / Math.pow(10, e);
+  var ms = m.toFixed(sig - 1);
+  if (Math.abs(parseFloat(ms)) >= 10) { e += 1; ms = (m / 10).toFixed(sig - 1); }
+  return { m: ms.replace('-', MINUS), e: String(e).replace('-', MINUS) };
+}
+function sciHTML(v, sig) {
+  var p = sciParts(v, sig);
+  if (!p) return isFinite(v) ? '0' : '&mdash;';
+  return p.m + '&times;10<sup>' + p.e + '</sup>';
+}
+function sciRich(v, sig) {
+  var p = sciParts(v, sig);
+  if (!p) return isFinite(v) ? '0' : '—';
+  return p.m + '×10^{' + p.e + '}';
+}
+function fixed(v, d) {
+  if (!isFinite(v)) return '—';
+  var s = v.toFixed(d);
+  if (parseFloat(s) === 0) s = (0).toFixed(d);
+  return s.replace('-', MINUS);
+}
+function signed(v, d) { return (v > 0 ? '+' : '') + fixed(v, d); }
+function fmtLen(cm) {
+  if (!isFinite(cm)) return '—';
+  var um = cm * 1e4;
+  if (um < 0.1) return (um * 1000).toPrecision(3) + ' nm';
+  return um.toPrecision(3) + ' µm';
+}
+
+/* ------------------------------------------------------------------ */
+/* canvas helpers                                                       */
+/* ------------------------------------------------------------------ */
+var FONT = 'Arial, Helvetica, sans-serif';
+var COL = { title: '#004187', text: '#3C3C3B', el: '#1F5FD0', ho: '#E02B20', scr: '#D9D9D9',
+            field: '#1B8A3A', pot: '#004187', fermi: '#C0198C', grid: '#E6E6E6',
+            ref: '#8A8A8A', band: '#404040', frame: '#7A7A7A', metal: '#B8BEC6', metalHi: '#E4E7EB',
+            sat: '#D07A00' };
+
+function fitCanvas(cv) {
+  var dpr = window.devicePixelRatio || 1;
+  var w = cv.clientWidth, h = cv.clientHeight;
+  var pw = Math.max(1, Math.round(w * dpr)), ph = Math.max(1, Math.round(h * dpr));
+  if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
+  var ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  return { ctx: ctx, w: w, h: h };
+}
+
+/* rich text: "N_{A}", "cm^{-3}" -> sub/superscripts */
+function parseRich(s) {
+  var segs = [], buf = '', i = 0;
+  while (i < s.length) {
+    var ch = s.charAt(i);
+    if ((ch === '^' || ch === '_') && s.charAt(i + 1) === '{') {
+      var k = s.indexOf('}', i);
+      if (k < 0) k = s.length;
+      if (buf) { segs.push({ t: buf, m: 0 }); buf = ''; }
+      segs.push({ t: s.slice(i + 2, k), m: ch === '^' ? 1 : -1 });
+      i = k + 1;
+    } else { buf += ch; i++; }
+  }
+  if (buf) segs.push({ t: buf, m: 0 });
+  return segs;
+}
+function fontStr(size, o) {
+  return (o.italic ? 'italic ' : '') + (o.bold ? 'bold ' : '') + size + 'px ' + FONT;
+}
+function richWidth(ctx, s, size, o) {
+  o = o || {};
+  var segs = parseRich(s), w = 0;
+  for (var i = 0; i < segs.length; i++) {
+    ctx.font = fontStr(segs[i].m ? size * 0.76 : size, o);
+    w += ctx.measureText(segs[i].t).width;
+  }
+  return w;
+}
+function rich(ctx, s, x, y, o) {
+  o = o || {};
+  var size = o.size || 14, segs = parseRich(s), w = 0, i;
+  for (i = 0; i < segs.length; i++) {
+    ctx.font = fontStr(segs[i].m ? size * 0.76 : size, o);
+    segs[i].w = ctx.measureText(segs[i].t).width;
+    w += segs[i].w;
+  }
+  var x0 = o.align === 'center' ? x - w / 2 : (o.align === 'right' ? x - w : x);
+  if (o.halo) {
+    ctx.fillStyle = 'rgba(255,255,255,0.84)';
+    ctx.fillRect(x0 - 3, y - size * 0.72, w + 6, size * 1.44);
+  }
+  ctx.fillStyle = o.color || COL.text;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  for (i = 0; i < segs.length; i++) {
+    var g = segs[i];
+    ctx.font = fontStr(g.m ? size * 0.76 : size, o);
+    ctx.fillText(g.t, x0, y + (g.m === 1 ? -size * 0.36 : (g.m === -1 ? size * 0.3 : 0)));
+    x0 += g.w;
+  }
+  return w;
+}
+function wrapRich(ctx, text, maxW, size, o) {
+  var words = text.split(' '), lines = [], cur = '';
+  for (var i = 0; i < words.length; i++) {
+    var t = cur ? cur + ' ' + words[i] : words[i];
+    if (cur && richWidth(ctx, t, size, o) > maxW) { lines.push(cur); cur = words[i]; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+/* several lines, vertically centred on y */
+function richLines(ctx, lines, x, y, o) {
+  var size = o.size || 14, lh = size * 1.22, y0 = y - lh * (lines.length - 1) / 2;
+  for (var i = 0; i < lines.length; i++) rich(ctx, lines[i], x, y0 + i * lh, o);
+}
+
+function niceStep(range, n) {
+  var raw = range / Math.max(1, n);
+  var p = Math.pow(10, Math.floor(Math.log10(raw)));
+  var f = raw / p;
+  return (f < 1.5 ? 1 : (f < 3.5 ? 2 : (f < 7.5 ? 5 : 10))) * p;
+}
+function makeTicks(min, max, n) {
+  var st = niceStep(max - min, n), t = [];
+  var i0 = Math.ceil(min / st - 1e-9), i1 = Math.floor(max / st + 1e-9);
+  for (var i = i0; i <= i1; i++) t.push(i * st);
+  return { t: t, step: st };
+}
+function makeDecadeTicks(lo, hi, n) {
+  var raw = (hi - lo) / Math.max(1, n), st = 1;
+  if (raw > 1) st = 2;
+  if (raw > 2) st = 5;
+  if (raw > 5) st = 10;
+  if (raw > 10) st = 10 * Math.ceil(raw / 10);
+  var t = [];
+  for (var i = Math.ceil(lo / st - 1e-9); i <= Math.floor(hi / st + 1e-9); i++) t.push(i * st);
+  return { t: t, step: st };
+}
+function axisExp(maxAbs) {
+  if (!(maxAbs > 0)) return 0;
+  var e = Math.floor(Math.log10(maxAbs) + 1e-12);
+  return (e >= -1 && e <= 3) ? 0 : e;
+}
+function tickText(v, step, e) {
+  var s = Math.pow(10, e);
+  var d = Math.max(0, Math.min(6, -Math.floor(Math.log10(step / s) + 1e-9)));
+  return fixed(v / s, d);
+}
+
+function mkPlot(r, xr, yr) {
+  return { r: r, xr: xr, yr: yr,
+    X: function (x) { return r.x + (x - xr[0]) / (xr[1] - xr[0]) * r.w; },
+    Y: function (v) { return r.y + r.h - (v - yr[0]) / (yr[1] - yr[0]) * r.h; } };
+}
+/* clip + grid. xt, yt = {t:[data-unit ticks], f: data->display factor} */
+function plotBegin(ctx, P, o) {
+  var r = P.r, k;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip();
+  if (o.under) o.under();
+  ctx.strokeStyle = COL.grid; ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.beginPath();
+  for (k = 0; k < o.xt.t.length; k++) { var gx = Math.round(P.X(o.xt.t[k] / o.xf)) + 0.5; ctx.moveTo(gx, r.y); ctx.lineTo(gx, r.y + r.h); }
+  for (k = 0; k < o.yt.t.length; k++) { var gy = Math.round(P.Y(o.yt.t[k])) + 0.5; ctx.moveTo(r.x, gy); ctx.lineTo(r.x + r.w, gy); }
+  ctx.stroke();
+  if (o.zero && P.yr[0] < 0 && P.yr[1] > 0) {
+    ctx.strokeStyle = '#9C9C9C'; ctx.beginPath();
+    var zy = Math.round(P.Y(0)) + 0.5; ctx.moveTo(r.x, zy); ctx.lineTo(r.x + r.w, zy); ctx.stroke();
+  }
+}
+function plotEnd(ctx, P, o) {
+  var r = P.r, FS = o.FS, k;
+  ctx.restore();
+  ctx.strokeStyle = COL.frame; ctx.lineWidth = 1.2; ctx.setLineDash([]);
+  ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+  var e = o.yexp || 0;
+  for (k = 0; k < o.yt.t.length; k++) {
+    var v = o.yt.t[k], y = P.Y(v);
+    if (y < r.y - 1 || y > r.y + r.h + 1) continue;
+    ctx.strokeStyle = COL.frame; ctx.beginPath(); ctx.moveTo(r.x - 4, y); ctx.lineTo(r.x, y); ctx.stroke();
+    var txt = o.ylog ? '10^{' + String(Math.round(v)).replace('-', MINUS) + '}' : tickText(v, o.yt.step, e);
+    rich(ctx, txt, r.x - 7, y, { size: FS, align: 'right' });
+  }
+  var lab = o.ylab + ' [' + (e !== 0 ? '10^{' + String(e).replace('-', MINUS) + '} ' : '') + o.yunit + ']';
+  var ls = FS;
+  while (ls > 12 && richWidth(ctx, lab, ls, { bold: true }) > r.h + 6) ls -= 0.5;
+  ctx.save();
+  ctx.translate(r.x - o.ylabOff, r.y + r.h / 2); ctx.rotate(-Math.PI / 2);
+  rich(ctx, lab, 0, 0, { size: ls, align: 'center', bold: true, color: o.ycolor || COL.text });
+  ctx.restore();
+  if (o.xlab) {
+    var yb = r.y + r.h;
+    for (k = 0; k < o.xt.t.length; k++) {
+      var tv = o.xt.t[k], tx = P.X(tv / o.xf);
+      if (tx < r.x - 1 || tx > r.x + r.w + 1) continue;
+      if (o.xmin !== undefined && tv < o.xmin - 1e-9) continue;
+      ctx.strokeStyle = COL.frame; ctx.beginPath(); ctx.moveTo(tx, yb); ctx.lineTo(tx, yb + 5); ctx.stroke();
+      rich(ctx, tickText(tv, o.xt.step, 0), tx, yb + 6 + FS * 0.7, { size: FS, align: 'center' });
+    }
+    var xs = FS;
+    while (xs > 12 && richWidth(ctx, o.xlab, xs, { bold: true }) > r.w + 60) xs -= 0.5;
+    rich(ctx, o.xlab, r.x + r.w / 2, yb + 6 + FS * 2.05, { size: xs, align: 'center', bold: true });
+  }
+}
+function vArrow(ctx, x, y1, y2, color) {          /* double-headed vertical dimension arrow */
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.6; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+  if (Math.abs(y2 - y1) > 16) {
+    var s = y2 > y1 ? 1 : -1;
+    ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x - 4, y1 + 8 * s); ctx.lineTo(x + 4, y1 + 8 * s); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x, y2); ctx.lineTo(x - 4, y2 - 8 * s); ctx.lineTo(x + 4, y2 - 8 * s); ctx.closePath(); ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.moveTo(x - 4, y1); ctx.lineTo(x + 4, y1); ctx.moveTo(x - 4, y2); ctx.lineTo(x + 4, y2); ctx.stroke();
+  }
+}
+function hArrow(ctx, x1, x2, y, t, color, dash) {  /* single-headed horizontal arrow x1 -> x2, thickness t */
+  var dir = x2 > x1 ? 1 : -1, hl = 7 + t * 0.9, hw = 4 + t * 0.75;
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = t; ctx.setLineDash(dash || []); ctx.lineCap = 'butt';
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2 - dir * hl * 0.9, y); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x2, y); ctx.lineTo(x2 - dir * hl, y - hw); ctx.lineTo(x2 - dir * hl, y + hw); ctx.closePath(); ctx.fill();
+}
+
+/* ------------------------------------------------------------------ */
+/* state + controls                                                     */
+/* ------------------------------------------------------------------ */
+var DEF = { semi: 'Si', type: 'n', phim: 4.55, N: 1e16, V: 0, T: 300, image: false, pn: false, log: false, override: null };
+var S = {};
+function setState(o) { for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) S[k] = o[k]; }
+setState(DEF);
+function $(id) { return document.getElementById(id); }
+var selSemi = $('selSemi'), selType = $('selType'), selMetal = $('selMetal'), sPhi = $('sPhi'), sN = $('sN'),
+    sV = $('sV'), sT = $('sT'), chkImg = $('chkImg'), chkPn = $('chkPn'), inOv = $('inOv'), cv = $('cv');
+
+(function fillMetals() {
+  var h = '';
+  for (var i = 0; i < METALS.length; i++) h += '<option value="' + i + '">' + METALS[i][0] + '  (' + METALS[i][1].toFixed(2) + ' V)</option>';
+  h += '<option value="-1">custom (slider)</option>';
+  selMetal.innerHTML = h;
+})();
+function metalIndex(phim) {
+  for (var i = 0; i < METALS.length; i++) if (Math.abs(METALS[i][1] - phim) < 0.0051) return i;
+  return -1;
+}
+function metalName() { var i = metalIndex(S.phim); return i < 0 ? 'metal' : METALS[i][0]; }
+
+function params(V) {
+  return { semi: S.semi, type: S.type, phim: S.phim, N: S.N, V: (V === undefined ? S.V : V), T: S.T,
+           image: S.image, override: S.override };
+}
+function clampState() {
+  S.V = Math.max(-5, Math.min(0.6, Math.round(S.V * 1000) / 1000));
+  if (Math.abs(S.V) < 0.0025) S.V = 0;
+  S.phim = Math.max(3.5, Math.min(6, Math.round(S.phim * 100) / 100));
+  S.N = Math.max(1e14, Math.min(1e20, S.N));
+  S.T = Math.max(250, Math.min(400, S.T));
+}
+function syncControls() {
+  clampState();
+  selSemi.value = S.semi; selType.value = S.type;
+  selMetal.value = String(metalIndex(S.phim));
+  sPhi.value = String(S.phim); sN.value = String(Math.log10(S.N)); sV.value = String(S.V); sT.value = String(S.T);
+  chkImg.checked = S.image; chkPn.checked = S.pn;
+  inOv.value = (S.override === null) ? '' : String(S.override);
+  var b = $('segJV').getElementsByTagName('button');
+  for (var i = 0; i < b.length; i++) b[i].className = ((b[i].getAttribute('data-v') === 'log') === S.log) ? 'on' : '';
+}
+function readOverride() {
+  var t = inOv.value, v = parseFloat(t);
+  S.override = (t !== '' && isFinite(v) && v >= 0 && v <= 3) ? v : null;
+}
+
+selSemi.addEventListener('change', function () { S.semi = selSemi.value; update(); });
+selType.addEventListener('change', function () { S.type = selType.value; update(); });
+selMetal.addEventListener('change', function () {
+  var i = parseInt(selMetal.value, 10);
+  if (i >= 0) { S.phim = METALS[i][1]; sPhi.value = String(S.phim); }
+  update();
+});
+sPhi.addEventListener('input', function () { S.phim = parseFloat(sPhi.value); clampState(); selMetal.value = String(metalIndex(S.phim)); update(); });
+sN.addEventListener('input', function () { S.N = Math.pow(10, parseFloat(sN.value)); update(); });
+sV.addEventListener('input', function () { S.V = parseFloat(sV.value); clampState(); update(); });
+sT.addEventListener('input', function () { S.T = parseFloat(sT.value); update(); });
+chkImg.addEventListener('change', function () { S.image = chkImg.checked; update(); });
+chkPn.addEventListener('change', function () { S.pn = chkPn.checked; update(); });
+inOv.addEventListener('input', function () { readOverride(); update(); });
+$('segJV').addEventListener('click', function (ev) {
+  var t = ev.target;
+  if (t && t.getAttribute && t.getAttribute('data-v')) { S.log = t.getAttribute('data-v') === 'log'; syncControls(); update(); }
+});
+function nudgeV(d) { S.V = S.V + d; clampState(); sV.value = String(S.V); update(); }
+$('bVm').addEventListener('click', function () { nudgeV(-0.01); });
+$('bVp').addEventListener('click', function () { nudgeV(+0.01); });
+$('bV0').addEventListener('click', function () { S.V = 0; sV.value = '0'; update(); });
+
+var PRESETS = {
+  p1: { semi: 'Si', type: 'n', phim: 4.55, N: 1e16, V: 0, T: 300, override: null },
+  p2: { V: 0.3 },
+  p3: { V: -5 },
+  p4: { semi: 'Si', type: 'n', phim: 4.55, N: 7e18, V: 0, T: 300, override: 0.67 },
+  p5: { semi: 'Si', type: 'n', phim: 4.28, N: 1e16, V: 0, T: 300, override: null },
+  p6: { semi: 'Si', type: 'n', phim: 4.00, N: 1e16, V: 0, T: 300, override: null },
+  p7: { semi: 'Si', type: 'p', phim: 5.65, N: 1e16, V: 0, T: 300, override: null },
+  p8: { semi: 'Si', type: 'p', phim: 4.28, N: 1e16, V: 0, T: 300, override: null }
+};
+function applyPreset(id) { if (PRESETS[id]) { setState(PRESETS[id]); syncControls(); update(); } }
+(function () {
+  for (var id in PRESETS) if (Object.prototype.hasOwnProperty.call(PRESETS, id)) {
+    (function (pid) { $(pid).addEventListener('click', function () { applyPreset(pid); }); })(id);
+  }
+})();
+$('btnReset').addEventListener('click', function () { setState(DEF); syncControls(); update(); });
+
+/* optional deep link from PowerPoint: ms_contact_lab.html#preset=4&va=-2&img=1&pn=1&log=1
+   keys: preset=1..8, semi=Si|GaAs, type=n|p, phim, n (cm^-3, e.g. 7e18), t (K), va, ov, img, pn, log, notice */
+function applyHash() {
+  var hsh = (window.location.hash || '').replace(/^#/, '');
+  if (!hsh) return;
+  var parts = hsh.split('&');
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split('='), key = kv[0], val = kv[1];
+    if (key === 'preset' && PRESETS['p' + val]) setState(PRESETS['p' + val]);
+    else if (key === 'va' && isFinite(parseFloat(val))) S.V = parseFloat(val);
+    else if (key === 'semi' && SEMI[val]) S.semi = val;
+    else if (key === 'type' && (val === 'n' || val === 'p')) S.type = val;
+    else if (key === 'phim' && isFinite(parseFloat(val))) S.phim = parseFloat(val);
+    else if (key === 'n' && isFinite(parseFloat(val))) S.N = parseFloat(val);
+    else if (key === 't' && isFinite(parseFloat(val))) S.T = parseFloat(val);
+    else if (key === 'ov') S.override = (isFinite(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 3) ? parseFloat(val) : null;
+    else if (key === 'img') S.image = val === '1';
+    else if (key === 'pn') S.pn = val === '1';
+    else if (key === 'log') S.log = val === '1';
+    else if (key === 'notice' && val === '1') $('notice').open = true;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* readout                                                              */
+/* ------------------------------------------------------------------ */
+function cell(k, v, wide) { return '<div class="cell' + (wide ? ' wide' : '') + '"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+function updateReadout(c) {
+  var isN = c.isN, dn = isN ? 'n' : 'p', B = '&phi;<sub>B' + dn + '</sub>', B0 = '&phi;<sub>B' + dn + '0</sub>';
+  $('oPhi').innerHTML = fixed(S.phim, 2) + ' V';
+  $('lblN').innerHTML = isN ? 'Donor doping N<sub>d</sub>' : 'Acceptor doping N<sub>a</sub>';
+  $('oN').innerHTML = sciHTML(S.N, 3) + ' cm<sup>' + MINUS + '3</sup>';
+  $('lblV').innerHTML = isN ? 'V<sub>a</sub> = V<sub>metal</sub> ' + MINUS + ' V<sub>semi</sub>' : 'V<sub>a</sub> = V<sub>semi</sub> ' + MINUS + ' V<sub>metal</sub>';
+  $('oV').innerHTML = signed(S.V, 3) + ' V';
+  $('oT').innerHTML = S.T.toFixed(0) + ' K';
+  $('vnote').innerHTML = 'V<sub>a</sub> &gt; 0 = forward bias' + (isN ? ' (n-type)' : ' (p-type: polarity mirrored)');
+  $('lblOv').innerHTML = 'Override ' + B + ' (measured) [V]';
+
+  var cls, ccol;
+  if (c.rect) { cls = 'RECTIFYING (Schottky barrier)'; ccol = '#004187'; }
+  else { cls = 'OHMIC (no depletion barrier; accumulation)'; ccol = '#1B8A3A'; }
+  var mode, mcol;
+  if (S.V === 0) { mode = 'ZERO BIAS (equilibrium)'; mcol = '#5A5A5A'; }
+  else if (S.V > 0) { mode = 'FORWARD BIAS'; mcol = '#E02B20'; }
+  else { mode = 'REVERSE BIAS'; mcol = '#1F5FD0'; }
+  if (!c.rect && S.V !== 0) { mode = 'BIASED (either polarity conducts)'; mcol = '#5A5A5A'; }
+  var rcol = c.ratio < 0.5 ? '#5A5A5A' : (c.ratio <= 5 ? '#D07A00' : '#C0198C');
+  var hb = '<span class="badge" style="background:' + ccol + '">' + cls + '</span>';
+  hb += '<span class="badge" style="background:' + mcol + '">' + mode + '</span>';
+  hb += '<span class="badge" style="background:' + rcol + '">transport: ' + c.regime + '</span>';
+  var extra = [];
+  if (c.override) extra.push(c.rect ? 'barrier &gt; &phi;<sub>' + dn + '</sub>: majority carriers depleted at the interface' : 'barrier &le; &phi;<sub>' + dn + '</sub>: ideal non-rectifying barrier');
+  else if (c.rect) extra.push((isN ? '&phi;<sub>m</sub> &gt; &phi;<sub>s</sub>' : '&phi;<sub>m</sub> &lt; &phi;<sub>s</sub>') + ': majority ' + (isN ? 'electrons' : 'holes') + ' are depleted at the interface');
+  else extra.push((isN ? '&phi;<sub>m</sub> &le; &phi;<sub>s</sub>' : '&phi;<sub>m</sub> &ge; &phi;<sub>s</sub>') + ': ideal non-rectifying barrier');
+  if (c.override) extra.push('measured barrier overrides &phi;<sub>m</sub> ' + MINUS + ' &chi;');
+  if (c.flat) extra.push('<b style="color:#E02B20">V<sub>a</sub> &ge; V<sub>bi</sub>: flat band, depletion model clamped</b>');
+  if (c.phiDop < 0) extra.push('<b style="color:#D07A00">N &gt; N<sub>' + (isN ? 'c' : 'v') + '</sub>: degenerate, Boltzmann &phi;<sub>' + dn + '</sub> only approximate</b>');
+  $('badges').innerHTML = hb;
+  $('rnote').innerHTML = extra.join(' &nbsp;&middot;&nbsp; ');
+
+  var na = '&mdash;', h = '';
+  h += cell('&phi;<sub>m</sub> , &chi;', fixed(S.phim, 2) + ' V , ' + fixed(c.sm.chi, 2) + ' V');
+  h += cell('&phi;<sub>' + dn + '</sub> = V<sub>t</sub> ln(N<sub>' + (isN ? 'c' : 'v') + '</sub>/N<sub>' + (isN ? 'd' : 'a') + '</sub>)', fixed(c.phiDop, 4) + ' V');
+  h += cell('&phi;<sub>s</sub> (semiconductor)', fixed(c.phiS, 3) + ' V');
+  h += cell(B0 + (c.override ? ' (override)' : (isN ? ' = &phi;<sub>m</sub> ' + MINUS + ' &chi;' : ' = E<sub>g</sub>/q + &chi; ' + MINUS + ' &phi;<sub>m</sub>')), fixed(c.phiB0, 3) + ' V');
+  h += cell('&Delta;&phi; image force', c.rect ? (c.image ? fixed(c.dphi * 1000, 1) + ' mV' : 'off (' + fixed(c.dphiRaw * 1000, 1) + ' mV)') : na);
+  h += cell(B + ' effective', c.rect ? fixed(c.phiB, 4) + ' V' : na);
+  h += cell('V<sub>bi</sub> = ' + B0 + ' ' + MINUS + ' &phi;<sub>' + dn + '</sub>', signed(c.Vbi, 4) + ' V');
+  h += cell('V<sub>bi</sub> ' + MINUS + ' V<sub>a</sub>', c.rect ? fixed(c.Vj, 4) + ' V' + (c.flat ? ' (clamped)' : '') : na);
+  h += cell('W (depletion width)', c.rect ? fmtLen(c.W) : na);
+  h += cell('|E<sub>max</sub>| at x = 0', c.rect ? sciHTML(c.Emax, 3) + ' V/cm' : na);
+  h += cell('x<sub>m</sub> (barrier maximum)', c.rect ? (c.xm * 1e7).toPrecision(3) + ' nm' : na);
+  h += cell('C&prime; = &epsilon;<sub>s</sub>/W', c.rect ? sciHTML(c.C, 3) + ' F/cm<sup>2</sup>' : na);
+  h += cell('J<sub>sT</sub> = A*T<sup>2</sup>e<sup>' + MINUS + '&phi;<sub>B</sub>/V<sub>t</sub></sup>', c.rect ? sciHTML(c.JsT, 3) + ' A/cm<sup>2</sup>' : na);
+  h += cell('J at V<sub>a</sub>', (c.J === 0 ? '0' : sciHTML(c.J, 3)) + ' A/cm<sup>2</sup>');
+  h += cell('E<sub>00</sub> vs kT', fixed(c.E00 / Q * 1000, 2) + ' vs ' + fixed(c.kT / Q * 1000, 2) + ' meV');
+  h += cell('E<sub>00</sub>/kT , A*', c.ratio.toPrecision(3) + ' , ' + c.A + ' A/cm<sup>2</sup>K<sup>2</sup>');
+  h += cell('V<sub>t</sub> = kT/q', fixed(c.vt * 1000, 2) + ' mV');
+  h += cell('R<sub>c</sub> specific contact resistance (model estimate)', sciHTML(c.Rc, 3) + ' &Omega;&middot;cm<sup>2</sup>', true);
+  $('rgrid').innerHTML = h;
+}
+
+/* ------------------------------------------------------------------ */
+/* drawing                                                              */
+/* ------------------------------------------------------------------ */
+function strokeFn(ctx, P, xs, fn, color, lw, dash) {
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.lineJoin = 'round';
+  ctx.beginPath();
+  var started = false;
+  for (var q = 0; q < xs.length; q++) {
+    var v = fn(xs[q]);
+    if (!isFinite(v)) { started = false; continue; }
+    var px = P.X(xs[q]), py = P.Y(v);
+    if (py < P.r.y - 4000) py = P.r.y - 4000;
+    if (py > P.r.y + P.r.h + 4000) py = P.r.y + P.r.h + 4000;
+    if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+function linspace(a, b, n, extra) {
+  var xs = [], k;
+  for (k = 0; k <= n; k++) xs.push(a + (b - a) * k / n);
+  if (extra) for (k = 0; k < extra.length; k++) if (extra[k] > a && extra[k] < b) xs.push(extra[k]);
+  xs.sort(function (p, q) { return p - q; });
+  return xs;
+}
+var XIMG0 = 2e-8;      /* 0.2 nm: image potential is drawn for x >= XIMG0 */
+
+function draw() {
+  var f = fitCanvas(cv), ctx = f.ctx, w = f.w, h = f.h;
+  if (w < 360 || h < 260) return;
+  var FS = Math.max(13, Math.min(16, Math.round(Math.min(w / 70, h / 38))));
+  var c = contact(params()), c0 = contact(params(0));
+  var s = c.isN ? 1 : -1, dn = c.isN ? 'n' : 'p';
+  var carCol = c.isN ? COL.el : COL.ho;
+  var semiName = dn + '-' + c.sm.name;
+
+  /* ---------------- layout ---------------- */
+  var mT = FS * 1.75, mB = FS * 3.2, mL = FS * 4.5, labOff = FS * 3.55;
+  var colL = Math.round(w * 0.575);
+  var rBand = { x: mL, y: mT, w: colL - mL - FS * 3.0, h: 0 };
+  var availL = h - mT - 8 - mB;
+  rBand.h = Math.round(availL * 0.66);
+  var rField = { x: rBand.x, y: rBand.y + rBand.h + 8, w: rBand.w, h: availL - rBand.h };
+  var xR = colL + FS * 4.9, wR = w - xR - FS * 1.0;
+  var availR = h - 2 * mT - 2 * mB;
+  var rJV = { x: xR, y: mT, w: wR, h: Math.round(availR * 0.54) };
+  var rZoom = { x: xR, y: rJV.y + rJV.h + mB + mT, w: wR, h: availR - Math.round(availR * 0.54) };
+
+  /* ================= (1) band diagram + (2) field share x ================= */
+  var xmax = c.rect ? 2.5 * Math.max(c.W, c0.W) : 6 * c.LD;
+  var xmet = 0.4 * xmax;
+  var xr = [-xmet, xmax];
+  var xu = (xmax * 1e4 < 0.2) ? { f: 1e7, name: 'nm' } : { f: 1e4, name: 'µm' };
+  var xt = makeTicks(0, xmax * xu.f, Math.max(3, Math.floor(rBand.w * 0.75 / 80)));
+  var extra = c.rect ? [c.W, XIMG0, c.xm, 2 * c.xm, 4 * c.xm] : [c.LD / 4, c.LD / 2, c.LD];
+  var xs = linspace(0, xmax, 420, extra);
+  var xsImg = [];
+  for (var k = 0; k < xs.length; k++) if (xs[k] >= XIMG0) xsImg.push(xs[k]);
+  var useImg = c.rect && c.image;
+  function Umaj(x) { return useImg ? bandU(c, x) - imagePot(c, x) : bandU(c, x); }
+  var eiOff = (c.vt / 2) * Math.log(c.Nv / c.Nc);
+
+  /* y range with pixel paddings (room for the carrier-flow arrows on the barrier side) */
+  var vals = [0, s * c.Utop, s * c.Ub, s * (c.Utop - c.Eg), s * (c.Ub - c.Eg), c.EFs];
+  var top = Math.max.apply(null, vals), bot = Math.min.apply(null, vals);
+  var padBig = Math.max(FS * 4.9, 0.2 * rBand.h), padSmall = 0.08 * rBand.h;
+  var padT = s > 0 ? padBig : padSmall, padB = s > 0 ? padSmall : padBig;
+  var evpp = (top - bot) / Math.max(40, rBand.h - padT - padB);
+  var yrB = [bot - padB * evpp, top + padT * evpp];
+  var PB = mkPlot(rBand, xr, yrB);
+  var ytB = makeTicks(yrB[0], yrB[1], Math.max(3, Math.floor(rBand.h / 48)));
+  var X = PB.X, Y = PB.Y;
+
+  plotBegin(ctx, PB, { xt: xt, xf: xu.f, yt: ytB, under: function () {
+    ctx.fillStyle = COL.metalHi; ctx.fillRect(rBand.x, rBand.y, X(0) - rBand.x, rBand.h);
+    ctx.fillStyle = COL.metal; ctx.fillRect(rBand.x, Y(0), X(0) - rBand.x, rBand.y + rBand.h - Y(0));
+    if (c.rect) { ctx.fillStyle = COL.scr; ctx.fillRect(X(0), rBand.y, X(c.W) - X(0), rBand.h); }
+  } });
+  /* interface + depletion edge */
+  ctx.strokeStyle = '#4A4A4A'; ctx.lineWidth = 1.4; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(Math.round(X(0)) + 0.5, rBand.y); ctx.lineTo(Math.round(X(0)) + 0.5, rBand.y + rBand.h); ctx.stroke();
+  if (c.rect) {
+    ctx.strokeStyle = '#6E6E6E'; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(X(c.W), rBand.y); ctx.lineTo(X(c.W), rBand.y + rBand.h); ctx.stroke(); ctx.setLineDash([]);
+  }
+  /* E_Fm reference continued into the semiconductor (thin) */
+  ctx.strokeStyle = COL.fermi; ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
+  ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(xmax), Y(0)); ctx.stroke(); ctx.setLineDash([]);
+  /* bands */
+  strokeFn(ctx, PB, xs, function (x) { return s * (bandU(c, x) - c.Eg / 2) + eiOff; }, COL.band, 1.5, [2, 4]);
+  strokeFn(ctx, PB, xs, function (x) { return s * (bandU(c, x) - c.Eg); }, COL.band, 2.5);
+  strokeFn(ctx, PB, useImg ? xsImg : xs, function (x) { return s * Umaj(x); }, COL.band, 2.5);
+  /* Fermi levels */
+  ctx.strokeStyle = COL.fermi; ctx.lineWidth = 2.2; ctx.setLineDash([8, 5]);
+  ctx.beginPath(); ctx.moveTo(rBand.x, Y(0)); ctx.lineTo(X(0), Y(0)); ctx.stroke();
+  var xF0 = c.rect ? c.W : 0;
+  ctx.beginPath(); ctx.moveTo(X(xF0), Y(c.EFs)); ctx.lineTo(X(xmax), Y(c.EFs)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  /* majority carriers (schematic dots) */
+  (function () {
+    var fx = [0.50, 0.545, 0.59, 0.635, 0.68, 0.725, 0.77, 0.815, 0.86], dy = [7, 15, 9, 21, 7, 12, 17, 8, 13];
+    if (!c.rect) { fx = [0.03, 0.06, 0.10, 0.15, 0.22, 0.30, 0.40, 0.52, 0.64, 0.76, 0.88, 0.96]; dy = [6, 11, 7, 12, 6, 10, 12, 7, 11, 9, 6, 11]; }
+    var xa = c.rect ? c.W : 0;
+    var dyMax = c.rect ? Math.max(6, Math.abs(Y(s * c.Ub) - Y(s * c.Utop)) + 9) : 100;
+    if (c.rect) {
+      /* keep the dots clear of the q(Vbi - Va) label (left) and of the qVa marker (right) */
+      var twoLine = Math.abs(Y(s * c.Ub) - Y(s * c.Utop)) >= FS * 2.6;
+      var lw = twoLine ? Math.max(richWidth(ctx, 'q(V_{bi} ' + MINUS + ' V_{a})', FS, { bold: true }), richWidth(ctx, '= ' + fixed(c.Vj, 3) + ' eV', FS, { bold: true })) : 0;
+      var pxA = Math.max(X(c.W + 0.10 * (xmax - c.W)) + 8 + lw + 12, X(c.W + 0.45 * (xmax - c.W)));
+      var pxB = X(xmax) - Math.max(14, 0.035 * rBand.w) - 12;
+      if (pxB - pxA < 24) pxA = pxB - 24;
+      var nd = Math.max(3, Math.min(9, Math.floor((pxB - pxA) / 11) + 1));
+      fx = [];
+      for (var q = 0; q < nd; q++) fx.push(((pxA + (pxB - pxA) * q / (nd - 1)) - X(c.W)) / (X(xmax) - X(c.W)));
+    }
+    for (var i = 0; i < fx.length; i++) {
+      var xx = xa + fx[i] * (xmax - xa), py = Y(s * bandU(c, xx)) - s * Math.min(dy[i], dyMax);
+      ctx.beginPath(); ctx.arc(X(xx), py, 3.6, 0, 2 * Math.PI);
+      if (c.isN) { ctx.fillStyle = COL.el; ctx.fill(); }
+      else { ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = COL.ho; ctx.lineWidth = 1.8; ctx.stroke(); }
+    }
+  })();
+
+  var yTopB = Y(s * c.Utop), xI = X(0);
+  if (c.rect) {
+    /* guide line at the ideal barrier top */
+    var xb = X(c.W + 0.10 * (xmax - c.W));
+    ctx.strokeStyle = '#7A7A7A'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(xI, yTopB); ctx.lineTo(xb + 6, yTopB); ctx.stroke(); ctx.setLineDash([]);
+    /* (a) metal-side barrier */
+    var yPk = Y(s * (c.Utop - c.dphi));
+    var xa0 = xI - Math.min(30, 0.3 * (xI - rBand.x));
+    vArrow(ctx, xI - 9, Y(0), yPk, COL.title);
+    richLines(ctx, ['qφ_{B' + dn + '}' + (useImg ? '' : '_{0}'), '= ' + fixed(c.Utop - c.dphi, 3) + ' eV'], xa0 - 8,
+              Y(0) - s * Math.max(Math.abs(Y(0) - yPk) / 2, FS * 1.4), { size: FS, align: 'right', bold: true, color: COL.title });
+    /* (b) semiconductor-side barrier */
+    vArrow(ctx, xb, Y(s * c.Ub), yTopB, COL.field);
+    if (Math.abs(Y(s * c.Ub) - yTopB) >= FS * 2.6) {
+      richLines(ctx, ['q(V_{bi} ' + MINUS + ' V_{a})', '= ' + fixed(c.Vj, 3) + ' eV'], xb + 8, (Y(s * c.Ub) + yTopB) / 2,
+                { size: FS, bold: true, color: COL.field, halo: true });
+    } else {
+      rich(ctx, 'q(V_{bi} ' + MINUS + ' V_{a}) = ' + fixed(c.Vj, 3) + ' eV', xb + 8, Y(s * c.Ub) + s * FS * 0.95,
+           { size: FS, bold: true, color: COL.field, halo: true });
+    }
+    /* (c) qVa between the two Fermi levels */
+    var xq = X(xmax) - Math.max(14, 0.035 * rBand.w);
+    if (S.V !== 0) {
+      vArrow(ctx, xq, Y(0), Y(c.EFs), COL.fermi);
+      var dF = Y(c.EFs) - Y(0);
+      rich(ctx, (c.flat ? 'qV_{junction} = ' : 'qV_{a} = ') + fixed(Math.abs(c.Vjn), 3) + ' eV', xq - 8,
+           Math.abs(dF) < FS * 1.7 ? Y(0) + (dF < 0 ? 1 : -1) * FS * 0.95 : Y(0.62 * c.EFs),
+           { size: FS, align: 'right', bold: true, color: COL.fermi, halo: true });
+    } else {
+      rich(ctx, 'equilibrium: E_{F} flat', X(xmax) - 8, Y(0) + s * FS * 0.95, { size: FS, align: 'right', bold: true, color: COL.fermi, halo: true });
+    }
+    /* carrier-flow arrows over the barrier (thickness on a log scale) */
+    var tSM = Math.max(0.8, Math.min(11, 3 + 0.9 * (c.V / c.vt) / Math.LN10)), tMS = 3;
+    var xa1 = xI + Math.min(90, 0.22 * (X(xmax) - xI));
+    var y1 = yTopB - s * (FS * 1.5 + tSM / 2), y2 = yTopB - s * (FS * 1.5 + tSM + FS * 1.4);
+    hArrow(ctx, xa1, xa0, y1, tSM, carCol, tSM < 1.2 ? [4, 3] : null);
+    hArrow(ctx, xa0, xa1, y2, tMS, carCol);
+    var lab1 = 'J_{s→m} ∝ exp[' + MINUS + 'q(V_{bi}' + MINUS + 'V_{a})/kT]', lab2 = 'J_{m→s} = J_{sT}  (fixed by φ_{B' + dn + '})';
+    if (richWidth(ctx, lab1, FS, { bold: true }) > rBand.x + rBand.w - xa1 - 12) { lab1 = 'J_{s→m} (bias dependent)'; lab2 = 'J_{m→s} = J_{sT} (fixed)'; }
+    rich(ctx, lab1, xa1 + 8, y1, { size: FS, bold: true, color: carCol, halo: true });
+    rich(ctx, lab2, xa1 + 8, y2, { size: FS, bold: true, color: carCol, halo: true });
+    /* tunnelling arrow */
+    if (c.ratio > 0.5) {
+      var ch = Math.cosh(c.ratio), ft = 1 / (ch * ch);
+      var Ut = c.Ub + c.Vj * Math.max(ft, 0.04), xtn = c.W * (1 - Math.sqrt(Math.max(ft, 0.04)));
+      hArrow(ctx, X(xtn) + 14, xI - Math.min(24, 0.25 * (xI - rBand.x)), Y(s * Ut), 2.4, carCol, [6, 4]);
+      rich(ctx, 'tunnelling', xI + 6, Y(s * Ut) + s * FS * 0.95, { size: FS, bold: true, italic: true, color: carCol, halo: true });
+    }
+    if (c.flat) richLines(ctx, wrapRich(ctx, 'V_{a} ≥ V_{bi}: flat band reached, depletion model clamped (the extra bias would drop across the bulk / series resistance)', X(xmax) - xI - 24, 13, { bold: true }),
+                          xI + 12, s > 0 ? rBand.y + rBand.h - FS * 3.6 : rBand.y + FS * 3.6, { size: 13, bold: true, color: COL.ho, halo: true });
+  } else {
+    /* ohmic: free flow in both directions */
+    var yBT = Y(s * Math.max(c.Utop, c.Ub));
+    var yo1 = yBT - s * FS * 2.0, yo2 = yBT - s * FS * 3.2;
+    var xo1 = xI + Math.min(80, 0.2 * (X(xmax) - xI)), xo0 = xI - Math.min(40, 0.4 * (xI - rBand.x));
+    hArrow(ctx, xo1, xo0, yo1, 4, carCol); hArrow(ctx, xo0, xo1, yo2, 4, carCol);
+    richLines(ctx, ['no barrier for ' + (c.isN ? 'electrons' : 'holes') + ':', 'free flow both ways'], xo1 + 8, (yo1 + yo2) / 2, { size: FS, bold: true, color: carCol, halo: true });
+    rich(ctx, 'schematic accumulation', xI + 10, Y(s * (bandU(c, 0) - c.Eg / 4)), { size: FS, italic: true, bold: true, color: COL.text, halo: true });
+  }
+  /* metal labels */
+  rich(ctx, 'E_{Fm}', rBand.x + 6, Y(0) + s * FS * 0.85, { size: FS, bold: true, color: COL.fermi });
+  rich(ctx, 'Metal', rBand.x + 6, s > 0 ? rBand.y + rBand.h - FS * 0.9 : rBand.y + FS * 0.9, { size: FS, bold: true, color: '#4A4F57' });
+  plotEnd(ctx, PB, { FS: FS, yt: ytB, ylab: 'Energy', yunit: 'eV,  E_{Fm} = 0', ylabOff: labOff });
+  /* band labels in the right margin, de-collided */
+  (function () {
+    var r = rBand, ub = bandU(c, xmax);
+    var L = [
+      { s: 'E_{c}', y: Y(c.isN ? ub : -ub + c.Eg), c: COL.band },
+      { s: 'E_{Fs}', y: Y(c.EFs), c: COL.fermi },
+      { s: 'E_{i}', y: Y(s * (ub - c.Eg / 2) + eiOff), c: COL.band },
+      { s: 'E_{v}', y: Y(c.isN ? ub - c.Eg : -ub), c: COL.band }
+    ];
+    L.sort(function (a, b) { return a.y - b.y; });
+    var minGap = FS * 1.05, q;
+    for (q = 0; q < L.length; q++) L[q].y = Math.max(r.y + FS * 0.5, Math.min(r.y + r.h - FS * 0.5, L[q].y));
+    for (q = 1; q < L.length; q++) if (L[q].y - L[q - 1].y < minGap) L[q].y = L[q - 1].y + minGap;
+    var over = L[L.length - 1].y - (r.y + r.h + FS * 0.2);
+    if (over > 0) for (q = 0; q < L.length; q++) L[q].y -= over;
+    for (q = 0; q < L.length; q++) rich(ctx, L[q].s, r.x + r.w + 6, L[q].y, { size: FS, color: L[q].c, bold: true });
+  })();
+  /* titles */
+  rich(ctx, 'Energy-band diagram', rBand.x, mT - FS * 0.85, { size: FS + 1, bold: true, color: COL.title });
+  (function () {
+    var t = metalName() + ' (φ_{m} = ' + fixed(S.phim, 2) + ' V)  |  ' + semiName + ', N_{' + (c.isN ? 'd' : 'a') + '} = ' + sciRich(S.N, 3) + ' cm^{' + MINUS + '3}';
+    var room = rBand.w - richWidth(ctx, 'Energy-band diagram', FS + 1, { bold: true }) - 14;
+    if (richWidth(ctx, t, FS, { bold: true }) > room) t = metalName() + ' ' + fixed(S.phim, 2) + ' V  |  ' + semiName + ', ' + sciRich(S.N, 2) + ' cm^{' + MINUS + '3}';
+    rich(ctx, t, rBand.x + rBand.w, mT - FS * 0.85, { size: FS, bold: true, align: 'right', color: COL.text });
+  })();
+
+  /* ---------------- (2) electric field ---------------- */
+  var Eref = c.rect ? -s * Math.max(c.Emax, c0.Emax) : fieldAt(c, 0);
+  if (!(Math.abs(Eref) > 0)) Eref = 1;
+  var yrE = Eref < 0 ? [1.2 * Eref, -0.24 * Eref] : [-0.24 * Eref, 1.2 * Eref];
+  var PE = mkPlot(rField, xr, yrE);
+  var ytE = makeTicks(yrE[0], yrE[1], Math.max(2, Math.floor(rField.h / 40)));
+  var eE = axisExp(Math.max(Math.abs(yrE[0]), Math.abs(yrE[1])));
+  plotBegin(ctx, PE, { xt: xt, xf: xu.f, yt: ytE, zero: true, under: function () {
+    ctx.fillStyle = COL.metal; ctx.fillRect(rField.x, rField.y, PE.X(0) - rField.x, rField.h);
+    if (c.rect) { ctx.fillStyle = COL.scr; ctx.fillRect(PE.X(0), rField.y, PE.X(c.W) - PE.X(0), rField.h); }
+  } });
+  ctx.strokeStyle = '#4A4A4A'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(Math.round(PE.X(0)) + 0.5, rField.y); ctx.lineTo(Math.round(PE.X(0)) + 0.5, rField.y + rField.h); ctx.stroke();
+  if (c.rect && S.V !== 0) strokeFn(ctx, PE, xs, function (x) { return fieldAt(c0, x); }, COL.ref, 1.3, [6, 4]);
+  /* filled area */
+  ctx.fillStyle = 'rgba(27,138,58,0.20)';
+  ctx.beginPath(); ctx.moveTo(PE.X(0), PE.Y(0));
+  for (k = 0; k < xs.length; k++) ctx.lineTo(PE.X(xs[k]), PE.Y(fieldAt(c, xs[k])));
+  ctx.lineTo(PE.X(xmax), PE.Y(0)); ctx.closePath(); ctx.fill();
+  strokeFn(ctx, PE, [0].concat(xs), function (x) { return fieldAt(c, x); }, COL.field, 2.6);
+  ctx.strokeStyle = COL.field; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(PE.X(0), PE.Y(0)); ctx.lineTo(PE.X(0), PE.Y(fieldAt(c, 0))); ctx.stroke();
+  ctx.fillStyle = COL.field; ctx.beginPath(); ctx.arc(PE.X(0), PE.Y(fieldAt(c, 0)), 4, 0, 2 * Math.PI); ctx.fill();
+  (function () {
+    var r = rField, neg = Eref < 0, tx = r.x + r.w - 8;
+    var ya = neg ? r.y + r.h - FS * 2.0 : r.y + FS * 0.95, yb2 = neg ? r.y + r.h - FS * 0.85 : r.y + FS * 2.1;
+    if (c.rect) {
+      rich(ctx, '|E_{max}| = ' + sciRich(c.Emax, 3) + ' V/cm', tx, ya, { size: FS, align: 'right', color: COL.field, bold: true, halo: true });
+      rich(ctx, 'shaded area = V_{bi} ' + MINUS + ' V_{a} = ' + fixed(c.Vj, 3) + ' V', tx, yb2, { size: FS, align: 'right', color: COL.field, halo: true });
+      /* W dimension on the empty side of the zero line */
+      var yw = neg ? r.y + FS * 0.8 : r.y + r.h - FS * 0.8, x0 = PE.X(0), x1 = PE.X(c.W);
+      ctx.strokeStyle = COL.text; ctx.fillStyle = COL.text; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(x0, yw); ctx.lineTo(x1, yw); ctx.stroke();
+      if (x1 - x0 > 18) {
+        ctx.beginPath(); ctx.moveTo(x0, yw); ctx.lineTo(x0 + 7, yw - 3.5); ctx.lineTo(x0 + 7, yw + 3.5); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x1, yw); ctx.lineTo(x1 - 7, yw - 3.5); ctx.lineTo(x1 - 7, yw + 3.5); ctx.closePath(); ctx.fill();
+      }
+      rich(ctx, 'W = ' + fmtLen(c.W), x1 + 6, yw, { size: FS, bold: true, halo: true });
+    } else {
+      rich(ctx, 'schematic accumulation field (not a depletion region)', tx, neg ? r.y + r.h - FS * 0.9 : r.y + FS * 0.95, { size: 13, align: 'right', color: COL.field, halo: true });
+    }
+    rich(ctx, 'Metal', r.x + 6, neg ? r.y + FS * 0.9 : r.y + r.h - FS * 0.9, { size: FS, bold: true, color: '#4A4F57' });
+  })();
+  plotEnd(ctx, PE, { FS: FS, yt: ytE, yexp: eE, ylab: 'E', yunit: 'V/cm', ycolor: COL.field, ylabOff: labOff,
+                     xt: xt, xf: xu.f, xmin: 0, xlab: 'Distance from the interface x [' + xu.name + ']   (metal | semiconductor at x = 0)' });
+
+  /* ================= (3) J-V ================= */
+  (function () {
+    var r = rJV, vmin = S.V < -1 ? -5 : -1, vmax = 0.62, n = 360, i;
+    var vs = linspace(vmin, vmax, n, [0, S.V, -0.002, 0.002, -0.01, 0.01]);
+    var js = [], jpn = [], vt300 = thermalV(300);
+    for (i = 0; i < vs.length; i++) { js.push(currentAt(c, vs[i])); jpn.push(JS_PN * (Math.exp(vs[i] / vt300) - 1)); }
+    var Jop = c.J, jEnd = currentAt(c, 0.6), jStart = currentAt(c, vmin);
+    var yr, yt, e = 0, Yf, P;
+    if (S.log) {
+      var hi = Math.log10(Math.max(jEnd, 1e-300)), lo;
+      if (c.rect) lo = Math.log10(Math.max(Math.min(c.JsT0, Math.abs(jStart)), 1e-300));
+      else lo = hi - 5;
+      if (S.pn) { lo = Math.min(lo, Math.log10(JS_PN)); hi = Math.max(hi, Math.log10(JS_PN * Math.exp(0.6 / vt300))); }
+      lo = Math.floor(lo) - 1; hi = Math.ceil(hi + 0.2);
+      if (hi - lo < 4) lo = hi - 4;
+      yr = [lo, hi]; yt = makeDecadeTicks(lo, hi, Math.max(3, Math.floor(r.h / 38)));
+      P = mkPlot(r, [vmin, vmax], yr);
+      Yf = function (j) { var a = Math.abs(j); return P.Y(a > 0 ? Math.max(Math.log10(a), lo - 3) : lo - 3); };
+    } else {
+      var jTop, jBot;
+      if (c.rect) {
+        var cap = Math.max(0.1, 12 * c.JsT0);
+        jTop = Math.min(cap, jEnd); if (S.pn) jTop = Math.max(jTop, Math.min(cap, JS_PN * Math.exp(0.6 / vt300)));
+        jBot = Math.max(-jTop, Math.min(-0.14 * jTop, 1.2 * jStart));
+      } else { jTop = Math.abs(jEnd) * 1.05; jBot = -Math.abs(vmin / c.Rc) * 1.05; if (jBot < -2 * jTop) jBot = -2 * jTop; }
+      yr = [jBot, jTop * 1.06]; yt = makeTicks(yr[0], yr[1], Math.max(3, Math.floor(r.h / 40)));
+      e = axisExp(Math.max(Math.abs(yr[0]), Math.abs(yr[1])));
+      P = mkPlot(r, [vmin, vmax], yr);
+      Yf = function (j) { return P.Y(j); };
+    }
+    var xtV = makeTicks(vmin, vmax, Math.max(4, Math.floor(r.w / 70)));
+    plotBegin(ctx, P, { xt: xtV, xf: 1, yt: yt, zero: !S.log });
+    ctx.strokeStyle = '#9C9C9C'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(Math.round(P.X(0)) + 0.5, r.y); ctx.lineTo(Math.round(P.X(0)) + 0.5, r.y + r.h); ctx.stroke();
+    function curve(arr, color, lw, dash) {
+      ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.lineJoin = 'round'; ctx.beginPath();
+      for (var q = 0; q < vs.length; q++) {
+        var py = Math.max(r.y - 50, Math.min(r.y + r.h + 50, Yf(arr[q])));
+        if (q === 0) ctx.moveTo(P.X(vs[q]), py); else ctx.lineTo(P.X(vs[q]), py);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (c.rect) {
+      ctx.strokeStyle = COL.sat; ctx.lineWidth = 1.6; ctx.setLineDash([7, 4]);
+      var ys = S.log ? Yf(c.JsT0) : Yf(-c.JsT0);
+      ctx.beginPath(); ctx.moveTo(r.x, ys); ctx.lineTo(P.X(S.log ? vmax : 0), ys); ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (S.pn) curve(jpn, COL.ref, 2, [2, 3]);
+    curve(js, COL.pot, 2.6);
+    /* legend */
+    var lx = r.x + 8, ly = r.y + FS * 0.95, lh = FS * 1.3;
+    function leg(color, lw, dash, txt) {
+      ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash || []);
+      ctx.fillStyle = 'rgba(255,255,255,0.84)'; ctx.fillRect(lx - 3, ly - FS * 0.7, 32, FS * 1.4);
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 26, ly); ctx.stroke(); ctx.setLineDash([]);
+      rich(ctx, txt, lx + 32, ly, { size: 13, color: color === COL.ref ? '#5E5E5E' : color, bold: true, halo: true });
+      ly += lh;
+    }
+    leg(COL.pot, 2.6, null, c.rect ? 'Schottky: J_{sT}[exp(V_{a}/V_{t}) ' + MINUS + ' 1]' : 'ohmic: J = V_{a}/R_{c}');
+    if (c.rect) leg(COL.sat, 1.6, [7, 4], (S.log ? '' : MINUS) + 'J_{sT} ideal (no Δφ) = ' + sciRich(c.JsT0, 2));
+    if (S.pn) leg(COL.ref, 2, [2, 3], 'Si pn diode, J_{s} = 3.66×10^{' + MINUS + '11} (300 K)');
+    if (c.ratio > 0.5 && c.rect) {
+      rich(ctx, 'tunnelling adds current: curve = lower bound', r.x + r.w - 6, r.y + r.h - FS * 0.85,
+           { size: 13, align: 'right', color: COL.sat, bold: true, halo: true });
+    }
+    plotEnd(ctx, P, { FS: FS, yt: yt, yexp: e, ylog: S.log, ylab: S.log ? '|J|' : 'J', yunit: 'A/cm^{2}', ylabOff: FS * 3.95,
+                      xt: xtV, xf: 1, xlab: c.isN ? 'V_{a} = V_{metal} ' + MINUS + ' V_{semi} [V]' : 'V_{a} = V_{semi} ' + MINUS + ' V_{metal} [V]  (forward > 0)' });
+    /* operating point (drawn unclipped) + its value in the title row */
+    var yo = Yf(Jop), off = false;
+    if (yo < r.y + 1) { yo = r.y + 1; off = true; }
+    if (yo > r.y + r.h - 1) { yo = r.y + r.h - 1; off = true; }
+    var xo = P.X(S.V);
+    ctx.fillStyle = COL.ho; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(xo, yo, 5.5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    var ttl = 'J–V (' + (S.log ? 'semilog' : 'linear') + ')';
+    var jl = 'J = ' + (Jop === 0 ? '0' : sciRich(Jop, 3)) + ' A/cm^{2}' + (off ? ' (off scale)' : '');
+    if (richWidth(ctx, jl, FS, { bold: true }) > r.w - richWidth(ctx, ttl, FS + 1, { bold: true }) - 30) jl = 'J = ' + sciRich(Jop, 3) + ' A/cm^{2}' + (off ? ' (off)' : '');
+    var jw = richWidth(ctx, jl, FS, { bold: true });
+    ctx.fillStyle = COL.ho; ctx.beginPath(); ctx.arc(r.x + r.w - jw - 9, r.y - FS * 0.85, 4.5, 0, 2 * Math.PI); ctx.fill();
+    rich(ctx, jl, r.x + r.w, r.y - FS * 0.85, { size: FS, bold: true, color: COL.ho, align: 'right' });
+    rich(ctx, 'J–V (' + (S.log ? 'semilog' : 'linear') + ')', r.x, r.y - FS * 0.85, { size: FS + 1, bold: true, color: COL.title });
+  })();
+
+  /* ================= (4) barrier close-up ================= */
+  (function () {
+    var r = rZoom;
+    rich(ctx, 'Barrier close-up near x = 0' + (c.rect ? (c.image ? '  (image force ON)' : '  (image force off)') : ''), r.x, r.y - FS * 0.85, { size: FS + 1, bold: true, color: COL.title });
+    if (!c.rect) {
+      ctx.strokeStyle = COL.frame; ctx.lineWidth = 1.2; ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+      var msg = wrapRich(ctx, 'Ohmic contact: no depletion barrier to zoom into. ' + (c.isN ? 'Electrons' : 'Holes') +
+                      ' pass freely both ways, J = V_{a}/R_{c} with R_{c} = ' + sciRich(c.Rc, 2) + ' Ω·cm^{2} (model estimate).', r.w - 24, 13, {});
+      msg.push('');
+      msg = msg.concat(wrapRich(ctx, 'The band diagram shows a schematic accumulation layer of height |V_{bi}| = ' + fixed(Math.abs(c.Vbi), 3) +
+                      ' V decaying over L_{D} = ' + fmtLen(c.LD) + '. It is drawn at equilibrium: an applied V_{a} drops across the bulk, not at the contact.', r.w - 24, 13, {}));
+      richLines(ctx, msg, r.x + 12, r.y + r.h / 2, { size: 13, color: COL.text });
+      return;
+    }
+    var xz = Math.min(1.2 * c.W, Math.max(10 * c.xm, 3e-7));
+    var xrz = [-0.14 * xz, xz];
+    var drop = c.Utop - bandU(c, xz);
+    var span = Math.max(drop, 1.8 * c.dphiRaw, 1e-4);
+    var lo = c.Utop - 1.12 * span, hi = c.Utop + 0.30 * span;
+    var yrz = s > 0 ? [lo, hi] : [-hi, -lo];
+    var P = mkPlot(r, xrz, yrz);
+    var xtz = makeTicks(0, xz * 1e7, Math.max(3, Math.floor(r.w / 80)));
+    var ytz = makeTicks(yrz[0], yrz[1], Math.max(3, Math.floor(r.h / 40)));
+    var xsz = linspace(0, xz, 300, [XIMG0, c.xm, c.W]), xszI = [];
+    for (var i = 0; i < 40; i++) xsz.push(XIMG0 * Math.pow(Math.max(2, 0.3 * xz / XIMG0), i / 39));
+    xsz.sort(function (a, b) { return a - b; });
+    for (i = 0; i < xsz.length; i++) if (xsz[i] >= XIMG0) xszI.push(xsz[i]);
+    plotBegin(ctx, P, { xt: xtz, xf: 1e7, yt: ytz, under: function () {
+      ctx.fillStyle = COL.metalHi; ctx.fillRect(r.x, r.y, P.X(0) - r.x, r.h);
+      ctx.fillStyle = COL.scr; ctx.fillRect(P.X(0), r.y, P.X(Math.min(c.W, xz)) - P.X(0), r.h);
+    } });
+    ctx.strokeStyle = '#4A4A4A'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(Math.round(P.X(0)) + 0.5, r.y); ctx.lineTo(Math.round(P.X(0)) + 0.5, r.y + r.h); ctx.stroke();
+    var bn = c.isN ? 'E_{c}' : 'E_{v}';
+    /* level of the ideal barrier top */
+    ctx.strokeStyle = '#7A7A7A'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(r.x, P.Y(s * c.Utop)); ctx.lineTo(r.x + r.w, P.Y(s * c.Utop)); ctx.stroke(); ctx.setLineDash([]);
+    if (c.image) {
+      strokeFn(ctx, P, xsz, function (x) { return s * bandU(c, x); }, COL.ref, 1.6, [6, 4]);
+      strokeFn(ctx, P, xszI, function (x) { return s * (bandU(c, x) - imagePot(c, x)); }, COL.band, 2.6);
+      var xp = P.X(c.xm), ypk = P.Y(s * (c.Utop - c.dphi));
+      ctx.strokeStyle = '#7A7A7A'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(xp, ypk); ctx.lineTo(xp, s > 0 ? r.y + r.h : r.y); ctx.stroke(); ctx.setLineDash([]);
+      vArrow(ctx, xp, P.Y(s * c.Utop), ypk, COL.ho);
+      rich(ctx, 'Δφ = ' + fixed(c.dphi * 1000, 1) + ' mV', xp + 8, (P.Y(s * c.Utop) + ypk) / 2 + s * FS * 0.2, { size: FS, bold: true, color: COL.ho, halo: true });
+      rich(ctx, 'x_{m} = ' + (c.xm * 1e7).toPrecision(3) + ' nm', xp + 6, s > 0 ? r.y + r.h - FS * 0.85 : r.y + FS * 0.85, { size: FS, bold: true, halo: true });
+      rich(ctx, 'ideal ' + bn + ' (dashed)   ' + bn + ' ' + (c.isN ? MINUS : '+') + ' q^{2}/16πε_{s}x (solid)', r.x + r.w - 6, s > 0 ? r.y + FS * 0.85 : r.y + r.h - FS * 0.85,
+           { size: 13, align: 'right', color: COL.text, halo: true });
+    } else {
+      strokeFn(ctx, P, xsz, function (x) { return s * bandU(c, x); }, COL.band, 2.6);
+      rich(ctx, 'ideal ' + bn + '(x): sharp top at qφ_{B' + dn + '0} (tick the image-force box)', r.x + r.w - 6, s > 0 ? r.y + FS * 0.85 : r.y + r.h - FS * 0.85,
+           { size: 13, align: 'right', color: COL.text, halo: true });
+    }
+    if (c.ratio > 0.5) {
+      var ch = Math.cosh(c.ratio), ft = Math.max(1 / (ch * ch), 0.04), Ut = c.Ub + c.Vj * ft, xtn = c.W * (1 - Math.sqrt(ft));
+      if (Ut > lo && xtn <= xz * 1.05) {
+        hArrow(ctx, P.X(xtn) + 12, P.X(0) - Math.min(20, 0.5 * (P.X(0) - r.x)), P.Y(s * Ut), 2.4, carCol, [6, 4]);
+        var tw = richWidth(ctx, 'tunnelling', FS, { bold: true, italic: true });
+        rich(ctx, 'tunnelling', Math.min(P.X(xtn) + 16, r.x + r.w - tw - 8), P.Y(s * Ut) - (P.X(xtn) + 16 + tw > r.x + r.w - 8 ? FS * 0.95 : 0),
+             { size: FS, bold: true, italic: true, color: carCol, halo: true });
+      }
+    }
+    rich(ctx, 'M', r.x + 5, s > 0 ? r.y + r.h - FS * 0.85 : r.y + FS * 0.85, { size: FS, bold: true, color: '#4A4F57' });
+    plotEnd(ctx, P, { FS: FS, yt: ytz, ylab: 'Energy', yunit: 'eV', ylabOff: FS * 3.95, xt: xtz, xf: 1e7, xmin: 0, xlab: 'x [nm]' });
+  })();
+}
+
+var rafPending = false;
+function schedule() {
+  if (rafPending) return;
+  rafPending = true;
+  window.requestAnimationFrame(function () { rafPending = false; draw(); });
+}
+function update() {
+  updateReadout(contact(params()));
+  schedule();
+}
+
+window.addEventListener('resize', schedule);
+if (window.ResizeObserver) { new ResizeObserver(schedule).observe($('plotwrap')); }
+if (window.matchMedia) {
+  try { window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)').addEventListener('change', schedule); } catch (err) { /* older browsers: resize event is enough */ }
+}
+window.addEventListener('hashchange', function () { applyHash(); syncControls(); update(); });
+applyHash();
+syncControls();
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MS Contact Simulations</title><style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#555;--acc:#004187;--line:#d8dee6}
+@media (prefers-color-scheme:dark){:root{--bg:#14171b;--fg:#e8eaed;--mut:#a9b0b8;--acc:#7fb2ff;--line:#2c333b}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 Arial,Helvetica,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 80px}h1{color:var(--acc);margin:8px 0 4px}h2{color:var(--acc);margin:0 0 6px;font-size:1.25rem}
+nav{font-size:.9rem;color:var(--mut);margin:12px 0 8px}a{color:var(--acc)}section{border-top:1px solid var(--line);padding:28px 0 12px;scroll-margin-top:8px}
+p{margin:0 0 12px;color:var(--mut)}video{width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+.lab{display:inline-block;margin:10px 0;padding:10px 18px;background:var(--acc);color:#fff;border-radius:6px;text-decoration:none;font-weight:bold}
+@media (prefers-color-scheme:dark){.lab{color:#0b1220}}
+</style></head><body><main>
+<h1>Metal–Semiconductor Contacts – Simulations</h1>
+<p>EE.30062 Semiconductor Devices, Lecture 4. Each section is opened by the button on the corresponding slide.</p>
+<a class="lab" href="ms_contact_lab.html">Open the interactive simulator (metal, doping, bias, J–V)</a>
+<nav><a href="#m1">Forming the Contact</a> · <a href="#m6">Sweeping the Metal Work Function</a> · <a href="#m2">Forward and Reverse Bias</a> · <a href="#m7">&quot;Measuring&quot; C–V</a> · <a href="#m4">Barrier Lowering under Reverse Bias</a> · <a href="#m8">Fermi-Level Pinning</a> · <a href="#m9">Forward Sweep of a Schottky Diode and a pn Diode</a> · <a href="#m5">Doping Sweep and Contact Resistance</a></nav>
+<section id="m1"><h2>Forming the Contact</h2><p>Metal (W) and n-Si are wired together, so the Fermi levels are aligned; a vacuum gap separates them. As the gap closes, the work-function difference moves from the gap into the semiconductor as band bending.</p><video controls preload="metadata" src="M1_gap.mp4"></video></section>
+<section id="m6"><h2>Sweeping the Metal Work Function (bands + J–V)</h2><p>n-Si, N_d = 10^16 cm^-3. Below phi_s = 4.22 V electrons accumulate and the J–V curve is a straight line (ohmic); above it a barrier phi_B0 = phi_m - chi appears, the contact rectifies and the turn-on voltage moves up. Ideal Schottky–Mott model, thermionic emission, R_s = 5 mOhm cm^2.</p><video controls preload="metadata" src="M6_phim.mp4"></video></section>
+<section id="m2"><h2>Forward and Reverse Bias</h2><p>The flow from the metal (over phi_B0) stays constant; the flow from the semiconductor changes exponentially with V_a.</p><video controls preload="metadata" src="M2_bias.mp4"></video></section>
+<section id="m7"><h2>&quot;Measuring&quot; C–V</h2><p>Reverse-bias sweep: charge, field and bands, and the (1/C&#x27;)^2 plot building up. The straight-line fit returns N_d and V_bi.</p><video controls preload="metadata" src="M7_cv.mp4"></video></section>
+<section id="m4"><h2>Barrier Lowering under Reverse Bias</h2><p>Image-force lowering grows with the field, so the reverse current does not saturate.</p><video controls preload="metadata" src="M4_image.mp4"></video></section>
+<section id="m8"><h2>Fermi-Level Pinning</h2><p>Neamen Eq. (9.16) solved while the interface-state density is swept; compared with measured barrier heights on n-Si (assumptions are stated in the video).</p><video controls preload="metadata" src="M8_pinning.mp4"></video></section>
+<section id="m9"><h2>Forward Sweep of a Schottky Diode and a pn Diode</h2><p>Same slope (60 mV/decade), very different prefactor: 0.312 V vs 0.682 V for 10 A/cm^2 (Neamen Examples 9.5–9.6).</p><video controls preload="metadata" src="M9_turnon.mp4"></video></section>
+<section id="m5"><h2>Doping Sweep and Contact Resistance</h2><p>The barrier height stays, but W ~ 1/sqrt(N_d): above about 10^19 cm^-3 electrons tunnel and R_c collapses (R_c from an interpolation model).</p><video controls preload="metadata" src="M5_doping.mp4"></video></section>
+</main></body></html>
